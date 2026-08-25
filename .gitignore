@@ -16,6 +16,9 @@ coverage.html
 # Go
 vendor/
 
+# Generated mocks
+mocks/
+
 # IDE
 .idea/
 .vscode/
