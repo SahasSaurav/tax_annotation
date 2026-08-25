@@ -2,6 +2,9 @@ package annotation
 
 import "encoding/json"
 
+// Form represents a complete tax form definition loaded from JSON.
+// It contains metadata, page dimensions, and the annotations that
+// define where values appear on each page.
 type Form struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -10,6 +13,8 @@ type Form struct {
 	Pages       []Page `json:"pages"`
 }
 
+// Page represents a single page within a tax form. Each page has its
+// own dimensions and a list of annotations that reference data values.
 type Page struct {
 	Number      int          `json:"number"`
 	Label       string       `json:"label,omitempty"`
@@ -18,6 +23,9 @@ type Page struct {
 	Annotations []Annotation `json:"annotations,omitempty"`
 }
 
+// UnmarshalJSON implements custom JSON deserialization for Form.
+// It applies default page dimensions (612x792 points, US Letter)
+// when width or height are not specified in the JSON.
 func (f *Form) UnmarshalJSON(data []byte) error {
 	type Alias Form
 	aux := &struct {

@@ -1,5 +1,8 @@
 package annotation
 
+// Format controls how a raw value is converted to a display string.
+// It specifies the output type, decimal precision, prefix/suffix,
+// text alignment, and whether the field supports multiline text.
 type Format struct {
 	Type      FormatType `json:"type"`
 	Decimals  *int       `json:"decimals,omitempty"`
@@ -10,6 +13,7 @@ type Format struct {
 	Multiline bool       `json:"multiline,omitempty"`
 }
 
+// FormatType selects which formatter handles the conversion from raw value to string.
 type FormatType string
 
 const (
@@ -25,6 +29,7 @@ const (
 	FormatPercent  FormatType = "percent"
 )
 
+// Alignment controls horizontal text alignment within the field's bounding box.
 type Alignment string
 
 const (
