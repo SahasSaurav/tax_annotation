@@ -7,7 +7,10 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-func (f *Formatter) formatDate(value interface{}, format *annotation.Format) (string, error) {
+// formatDate converts a date value to a string using the pattern specified in the
+// format configuration. Defaults to "01/02/2006" (US short date). Accepts string
+// dates in multiple common formats and time.Time values.
+func (f *formatter) formatDate(value interface{}, format *annotation.Format) (string, error) {
 	pattern := "01/02/2006"
 	if format.Pattern != "" {
 		pattern = format.Pattern
@@ -27,6 +30,8 @@ func (f *Formatter) formatDate(value interface{}, format *annotation.Format) (st
 	}
 }
 
+// parseTimeFlexible tries multiple common date formats to parse a string into time.Time.
+// Returns an error if none of the formats match.
 func parseTimeFlexible(s string) (time.Time, error) {
 	formats := []string{
 		"2006-01-02",

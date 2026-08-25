@@ -6,13 +6,20 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-type Formatter struct{}
+// formatter is the default implementation of the Formatter interface.
+// It converts raw Go values into human-readable display strings based
+// on the annotation's format configuration.
+type formatter struct{}
 
-func New() *Formatter {
-	return &Formatter{}
+// New creates a Formatter that satisfies the Formatter interface.
+func New() Formatter {
+	return &formatter{}
 }
 
-func (f *Formatter) Format(value interface{}, fieldType annotation.FieldType, format *annotation.Format) (string, error) {
+// Format converts a raw value into a display string using the specified field type
+// and format configuration. If format is nil, it falls back to a default representation
+// based on the field type. Returns an error if the value cannot be converted.
+func (f *formatter) Format(value interface{}, fieldType annotation.FieldType, format *annotation.Format) (string, error) {
 	if value == nil {
 		return "", nil
 	}
@@ -46,7 +53,9 @@ func (f *Formatter) Format(value interface{}, fieldType annotation.FieldType, fo
 	}
 }
 
-func (f *Formatter) formatDefault(value interface{}, fieldType annotation.FieldType) string {
+// formatDefault provides a fallback representation when no explicit format is specified.
+// Checkboxes are rendered as "Yes"/"No"; everything else uses fmt.Sprintf.
+func (f *formatter) formatDefault(value interface{}, fieldType annotation.FieldType) string {
 	switch fieldType {
 	case annotation.FieldTypeCheckbox:
 		return f.formatBoolean(value)

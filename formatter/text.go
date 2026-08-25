@@ -7,7 +7,8 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-func (f *Formatter) formatText(value interface{}, format *annotation.Format) string {
+// formatText returns the value as a string with optional prefix and suffix.
+func (f *formatter) formatText(value interface{}, format *annotation.Format) string {
 	s := fmt.Sprintf("%v", value)
 	prefix := ""
 	if format != nil && format.Prefix != "" {
@@ -20,7 +21,9 @@ func (f *Formatter) formatText(value interface{}, format *annotation.Format) str
 	return prefix + s + suffix
 }
 
-func (f *Formatter) formatBoolean(value interface{}) string {
+// formatBoolean converts a bool to "Yes" or "No". Non-bool values are
+// rendered using fmt.Sprintf.
+func (f *formatter) formatBoolean(value interface{}) string {
 	b, ok := value.(bool)
 	if !ok {
 		return fmt.Sprintf("%v", value)
@@ -31,7 +34,9 @@ func (f *Formatter) formatBoolean(value interface{}) string {
 	return "No"
 }
 
-func (f *Formatter) formatSSN(value interface{}, format *annotation.Format) (string, error) {
+// formatSSN formats a 9-digit value as XXX-XX-XXXX. Strips non-digit characters
+// before formatting. Returns an error if the input does not contain exactly 9 digits.
+func (f *formatter) formatSSN(value interface{}, format *annotation.Format) (string, error) {
 	s := strings.TrimSpace(fmt.Sprintf("%v", value))
 	digits := extractDigits(s)
 
@@ -50,7 +55,9 @@ func (f *Formatter) formatSSN(value interface{}, format *annotation.Format) (str
 	return prefix + digits[:3] + "-" + digits[3:5] + "-" + digits[5:] + suffix, nil
 }
 
-func (f *Formatter) formatEIN(value interface{}, format *annotation.Format) (string, error) {
+// formatEIN formats a 9-digit value as XX-XXXXXXX. Strips non-digit characters
+// before formatting. Returns an error if the input does not contain exactly 9 digits.
+func (f *formatter) formatEIN(value interface{}, format *annotation.Format) (string, error) {
 	s := strings.TrimSpace(fmt.Sprintf("%v", value))
 	digits := extractDigits(s)
 
@@ -69,7 +76,9 @@ func (f *Formatter) formatEIN(value interface{}, format *annotation.Format) (str
 	return prefix + digits[:2] + "-" + digits[2:] + suffix, nil
 }
 
-func (f *Formatter) formatPhone(value interface{}, format *annotation.Format) (string, error) {
+// formatPhone formats a 10-digit value as (XXX) XXX-XXXX. A leading "1" is
+// stripped if present (11-digit US numbers). Returns an error for other lengths.
+func (f *formatter) formatPhone(value interface{}, format *annotation.Format) (string, error) {
 	s := strings.TrimSpace(fmt.Sprintf("%v", value))
 	digits := extractDigits(s)
 
@@ -91,7 +100,9 @@ func (f *Formatter) formatPhone(value interface{}, format *annotation.Format) (s
 	return prefix + "(" + digits[:3] + ") " + digits[3:6] + "-" + digits[6:] + suffix, nil
 }
 
-func (f *Formatter) formatZIP(value interface{}, format *annotation.Format) (string, error) {
+// formatZIP formats a 5 or 9 digit ZIP code. 9-digit codes are formatted as
+// XXXXX-XXXX. Returns an error for other lengths.
+func (f *formatter) formatZIP(value interface{}, format *annotation.Format) (string, error) {
 	s := strings.TrimSpace(fmt.Sprintf("%v", value))
 	digits := extractDigits(s)
 
@@ -113,6 +124,7 @@ func (f *Formatter) formatZIP(value interface{}, format *annotation.Format) (str
 	return prefix + digits + suffix, nil
 }
 
+// extractDigits strips all non-digit characters from a string.
 func extractDigits(s string) string {
 	return strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
@@ -122,6 +134,8 @@ func extractDigits(s string) string {
 	}, s)
 }
 
+// AlignText pads text to the given width using the specified alignment.
+// If the text is already wider than the target, it is returned as-is.
 func AlignText(text string, width int, alignment annotation.Alignment) string {
 	runeLen := len([]rune(text))
 	if runeLen >= width {
