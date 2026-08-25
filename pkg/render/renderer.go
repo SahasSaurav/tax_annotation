@@ -11,6 +11,7 @@ import (
 	"github.com/sahassauarv/tax-annotation/pkg/formatter"
 	"github.com/sahassauarv/tax-annotation/pkg/parser"
 	"github.com/sahassauarv/tax-annotation/pkg/validator"
+	"golang.org/x/sync/errgroup"
 )
 
 // formRenderer is the default implementation of the Renderer interface.
@@ -101,10 +102,10 @@ func (r *RenderResult) GetInvalidFields() map[string]*RenderedField {
 	return result
 }
 
-// RenderForm processes all pages concurrently, returning a complete RenderResult.
-// Each page is rendered in a separate goroutine. The context is checked before
-// spawning goroutines so rendering can be cancelled early. Returns an error if
-// the form is nil, has no pages, or if any page fails.
+// RenderForm processes all pages concurrently using errgroup, returning a complete
+// RenderResult. Each page is rendered in a separate goroutine. The context is
+// derived from errgroup so cancellation propagates automatically. Returns an error
+// if the form is nil, has no pages, or if any page fails.
 func (ren *formRenderer) RenderForm(ctx context.Context, form *annotation.Form) (*RenderResult, error) {
 	if form == nil {
 		return nil, fmt.Errorf("form cannot be nil")
@@ -124,25 +125,14 @@ func (ren *formRenderer) RenderForm(ctx context.Context, form *annotation.Form) 
 		FormName: form.Name,
 	}
 
-	var (
-		wg      sync.WaitGroup
-		mu      sync.Mutex
-		pageErr error
-	)
+	g, ctx := errgroup.WithContext(ctx)
+	var mu sync.Mutex
 
 	for _, page := range form.Pages {
-		wg.Add(1)
-		go func(p annotation.Page) {
-			defer wg.Done()
-
-			pageResult, err := ren.RenderPage(ctx, &p)
+		g.Go(func() error {
+			pageResult, err := ren.RenderPage(ctx, &page)
 			if err != nil {
-				mu.Lock()
-				if pageErr == nil {
-					pageErr = fmt.Errorf("failed to render page %d: %w", p.Number, err)
-				}
-				mu.Unlock()
-				return
+				return fmt.Errorf("failed to render page %d: %w", page.Number, err)
 			}
 
 			mu.Lock()
@@ -151,22 +141,21 @@ func (ren *formRenderer) RenderForm(ctx context.Context, form *annotation.Form) 
 			}
 			result.Errors = append(result.Errors, pageResult.Errors...)
 			mu.Unlock()
-		}(page)
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	if pageErr != nil {
-		return nil, pageErr
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	result.RenderTime = time.Since(start)
 	return result, nil
 }
 
-// RenderPage processes all annotations on a page concurrently.
-// Each annotation is rendered in a separate goroutine. The context is checked
-// before spawning goroutines so long pages can be interrupted.
+// RenderPage processes all annotations on a page concurrently using errgroup.
+// Each annotation is rendered in a separate goroutine. The context is derived
+// from errgroup so cancellation propagates automatically.
 func (ren *formRenderer) RenderPage(ctx context.Context, page *annotation.Page) (*RenderResult, error) {
 	if page == nil {
 		return nil, fmt.Errorf("page cannot be nil")
@@ -181,37 +170,25 @@ func (ren *formRenderer) RenderPage(ctx context.Context, page *annotation.Page) 
 		Fields: make(map[string]*RenderedField),
 	}
 
-	var (
-		wg      sync.WaitGroup
-		mu      sync.Mutex
-		annErr  error
-	)
+	g, ctx := errgroup.WithContext(ctx)
+	var mu sync.Mutex
 
 	for _, ann := range page.Annotations {
-		wg.Add(1)
-		go func(a annotation.Annotation) {
-			defer wg.Done()
-
-			field, err := ren.RenderAnnotation(ctx, &a)
+		g.Go(func() error {
+			field, err := ren.RenderAnnotation(ctx, &ann)
 			if err != nil {
-				mu.Lock()
-				if annErr == nil {
-					annErr = fmt.Errorf("failed to render annotation %s: %w", a.ID, err)
-				}
-				mu.Unlock()
-				return
+				return fmt.Errorf("failed to render annotation %s: %w", ann.ID, err)
 			}
 
 			mu.Lock()
-			result.Fields[a.ID] = field
+			result.Fields[ann.ID] = field
 			mu.Unlock()
-		}(ann)
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	if annErr != nil {
-		return nil, annErr
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	result.RenderTime = time.Since(start)
@@ -282,47 +259,36 @@ func (ren *formRenderer) RenderFieldByID(ctx context.Context, form *annotation.F
 	return ren.RenderAnnotation(ctx, ann)
 }
 
-// FormatAllFields renders every annotation concurrently and returns a map of field IDs
-// to their formatted display strings. Only includes fields with a valid value.
+// FormatAllFields renders every annotation concurrently using errgroup and returns
+// a map of field IDs to their formatted display strings. Only includes fields
+// with a valid value.
 func (ren *formRenderer) FormatAllFields(ctx context.Context, form *annotation.Form) (map[string]string, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("format cancelled: %w", err)
 	}
 
 	result := make(map[string]string)
-	var (
-		wg   sync.WaitGroup
-		mu   sync.Mutex
-		fErr error
-	)
+	g, ctx := errgroup.WithContext(ctx)
+	var mu sync.Mutex
 
 	for _, ann := range parser.AllAnnotations(form) {
-		wg.Add(1)
-		go func(a annotation.Annotation) {
-			defer wg.Done()
-
-			field, err := ren.RenderAnnotation(ctx, &a)
+		g.Go(func() error {
+			field, err := ren.RenderAnnotation(ctx, &ann)
 			if err != nil {
-				mu.Lock()
-				if fErr == nil {
-					fErr = err
-				}
-				mu.Unlock()
-				return
+				return err
 			}
 
 			if field.HasValue && field.IsValid {
 				mu.Lock()
-				result[a.ID] = field.FormattedValue
+				result[ann.ID] = field.FormattedValue
 				mu.Unlock()
 			}
-		}(ann)
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	if fErr != nil {
-		return nil, fErr
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 	return result, nil
 }
