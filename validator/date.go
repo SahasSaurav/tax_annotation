@@ -2,7 +2,9 @@ package validator
 
 import "regexp"
 
-func (v *Validator) validateDateFormat(value interface{}) ValidationResult {
+// validateDateFormat checks that a string value matches one of the common
+// date formats: YYYY-MM-DD, MM/DD/YYYY, or MM-DD-YYYY.
+func (v *formValidator) validateDateFormat(value interface{}) ValidationResult {
 	s, ok := value.(string)
 	if !ok {
 		return ValidationResult{Valid: true}

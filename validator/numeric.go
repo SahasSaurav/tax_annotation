@@ -7,7 +7,9 @@ import (
 	"github.com/sahassauarv/tax-annotation/formatter"
 )
 
-func (v *Validator) validateNumericBounds(value interface{}, validation *annotation.Validation) ValidationResult {
+// validateNumericBounds checks that a numeric value falls within the min/max range
+// specified in the validation rules. Converts the value to float64 for comparison.
+func (v *formValidator) validateNumericBounds(value interface{}, validation *annotation.Validation) ValidationResult {
 	num, err := formatter.ToFloat64(value)
 	if err != nil {
 		return ValidationResult{Valid: false, Message: "cannot convert to number"}

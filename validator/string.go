@@ -6,7 +6,9 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-func (v *Validator) validateStringRules(value interface{}, validation *annotation.Validation) ValidationResult {
+// validateStringRules checks that a string value's length falls within the
+// min/max bounds specified in the validation rules.
+func (v *formValidator) validateStringRules(value interface{}, validation *annotation.Validation) ValidationResult {
 	s, ok := value.(string)
 	if !ok {
 		return ValidationResult{Valid: true}

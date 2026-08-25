@@ -6,7 +6,10 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-func (v *Validator) validateType(value interface{}, dataType annotation.DataType) ValidationResult {
+// validateType checks that a value matches the expected data type.
+// Strings must be Go strings, numbers can be numeric types or numeric strings,
+// booleans can be Go bools or string representations, and dates must match common patterns.
+func (v *formValidator) validateType(value interface{}, dataType annotation.DataType) ValidationResult {
 	switch dataType {
 	case annotation.DataTypeString:
 		if _, ok := value.(string); !ok {

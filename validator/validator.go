@@ -8,18 +8,19 @@ import (
 	"github.com/sahassauarv/tax-annotation/annotation"
 )
 
-type Validator struct{}
+// formValidator is the default implementation of the Validator interface.
+// It checks values against type, range, length, and format constraints.
+type formValidator struct{}
 
-func New() *Validator {
-	return &Validator{}
+// New creates a Validator that satisfies the Validator interface.
+func New() Validator {
+	return &formValidator{}
 }
 
-type ValidationResult struct {
-	Valid   bool
-	Message string
-}
-
-func (v *Validator) Validate(value interface{}, fieldType annotation.FieldType, validation *annotation.Validation) ValidationResult {
+// Validate checks a value against the field's type and validation constraints.
+// It validates in order: required check, type check, numeric bounds, string length,
+// and date format. All specified rules must pass for the result to be valid.
+func (v *formValidator) Validate(value interface{}, fieldType annotation.FieldType, validation *annotation.Validation) ValidationResult {
 	if validation == nil {
 		return ValidationResult{Valid: true}
 	}
@@ -64,7 +65,9 @@ func (v *Validator) Validate(value interface{}, fieldType annotation.FieldType, 
 	return ValidationResult{Valid: true}
 }
 
-func (v *Validator) ValidateAll(value interface{}, fieldType annotation.FieldType, validation *annotation.Validation, patterns map[string]string) ValidationResult {
+// ValidateAll runs standard validation plus additional regex pattern checks.
+// If any pattern does not match, the result is invalid.
+func (v *formValidator) ValidateAll(value interface{}, fieldType annotation.FieldType, validation *annotation.Validation, patterns map[string]string) ValidationResult {
 	result := v.Validate(value, fieldType, validation)
 	if !result.Valid {
 		return result
