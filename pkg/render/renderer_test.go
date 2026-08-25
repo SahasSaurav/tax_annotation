@@ -280,3 +280,78 @@ func TestFormatAllFields(t *testing.T) {
 		t.Errorf("expected John, got %s", formatted["name"])
 	}
 }
+
+func TestRenderFieldByID(t *testing.T) {
+	ctx := context.Background()
+	data := map[string]interface{}{"name": "John"}
+	resolver := parser.NewPathResolver(data)
+	fmtr := formatter.New()
+	vld := validator.New()
+	r, _ := NewRenderer(resolver, fmtr, vld)
+
+	form := &annotation.Form{
+		ID: "T", Name: "T",
+		Pages: []annotation.Page{{
+			Number: 1,
+			Annotations: []annotation.Annotation{
+				{ID: "name", Label: "Name", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "name"}},
+			},
+		}},
+	}
+
+	t.Run("found", func(t *testing.T) {
+		field, err := r.RenderFieldByID(ctx, form, "name")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if field.FormattedValue != "John" {
+			t.Errorf("expected John, got %s", field.FormattedValue)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		_, err := r.RenderFieldByID(ctx, form, "missing")
+		if err == nil {
+			t.Fatal("expected error for missing field")
+		}
+	})
+}
+
+func TestGetFieldSummary(t *testing.T) {
+	ctx := context.Background()
+	data := map[string]interface{}{"name": "John"}
+	resolver := parser.NewPathResolver(data)
+	fmtr := formatter.New()
+	vld := validator.New()
+	r, _ := NewRenderer(resolver, fmtr, vld)
+
+	form := &annotation.Form{
+		ID: "T", Name: "Test",
+		Pages: []annotation.Page{{
+			Number: 1, Label: "Page 1",
+			Annotations: []annotation.Annotation{
+				{ID: "name", Label: "Name", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "name"}},
+			},
+		}},
+	}
+
+	summary, err := r.GetFieldSummary(ctx, form)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if summary == "" {
+		t.Error("expected non-empty summary")
+	}
+}
+
+func TestIsCompleteAllValid(t *testing.T) {
+	result := &RenderResult{
+		Fields: map[string]*RenderedField{
+			"a": {IsValid: true, HasValue: true},
+			"b": {IsValid: true, HasValue: true},
+		},
+	}
+	if !result.IsComplete() {
+		t.Error("expected complete when all valid")
+	}
+}
