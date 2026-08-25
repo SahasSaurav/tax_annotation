@@ -61,7 +61,7 @@ func main() {
 	fmtr := formatter.New()
 	vld := validator.New()
 
-	renderer, err := render.NewRenderer(ctx, resolver, fmtr, vld)
+	renderer, err := render.NewRenderer(resolver, fmtr, vld)
 	if err != nil {
 		log.Fatal("Failed to create renderer:", err)
 	}
@@ -71,5 +71,8 @@ func main() {
 		log.Fatal("Failed to render form:", err)
 	}
 
-	result.PrintSummary()
+	writer := render.NewTerminalWriter()
+	if err := writer.Write(ctx, result, form); err != nil {
+		log.Fatal("Failed to write output:", err)
+	}
 }
