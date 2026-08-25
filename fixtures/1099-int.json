@@ -1,0 +1,206 @@
+{
+  "id": "1099-INT",
+  "name": "Interest Income",
+  "description": "Form 1099-INT for reporting interest income",
+  "version": "2025",
+  "pages": [
+    {
+      "number": 1,
+      "label": "Payer Information",
+      "annotations": [
+        {
+          "id": "payer_name",
+          "label": "Payer Name",
+          "fieldType": "text",
+          "value": { "path": "payer.name" },
+          "position": { "x": 50, "y": 50, "width": 300, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "payer_address",
+          "label": "Payer Address",
+          "fieldType": "text",
+          "value": { "path": "payer.address" },
+          "position": { "x": 50, "y": 80, "width": 400, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "payer_city",
+          "label": "City",
+          "fieldType": "text",
+          "value": { "path": "payer.city" },
+          "position": { "x": 50, "y": 110, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "payer_state",
+          "label": "State",
+          "fieldType": "text",
+          "value": { "path": "payer.state" },
+          "position": { "x": 270, "y": 110, "width": 50, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "payer_zip",
+          "label": "ZIP",
+          "fieldType": "text",
+          "value": { "path": "payer.zip" },
+          "position": { "x": 340, "y": 110, "width": 100, "height": 20 },
+          "format": { "type": "zip" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "payer_tin",
+          "label": "Payer TIN",
+          "fieldType": "text",
+          "value": { "path": "payer.tin" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "ein" },
+          "validation": { "required": true, "type": "string" }
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "label": "Recipient Information",
+      "annotations": [
+        {
+          "id": "recipient_name",
+          "label": "Recipient Name",
+          "fieldType": "text",
+          "value": { "path": "recipient.name" },
+          "position": { "x": 50, "y": 50, "width": 300, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "recipient_address",
+          "label": "Recipient Address",
+          "fieldType": "text",
+          "value": { "path": "recipient.address" },
+          "position": { "x": 50, "y": 80, "width": 400, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "recipient_city",
+          "label": "City",
+          "fieldType": "text",
+          "value": { "path": "recipient.city" },
+          "position": { "x": 50, "y": 110, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "recipient_state",
+          "label": "State",
+          "fieldType": "text",
+          "value": { "path": "recipient.state" },
+          "position": { "x": 270, "y": 110, "width": 50, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "recipient_zip",
+          "label": "ZIP",
+          "fieldType": "text",
+          "value": { "path": "recipient.zip" },
+          "position": { "x": 340, "y": 110, "width": 100, "height": 20 },
+          "format": { "type": "zip" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "recipient_ssn",
+          "label": "Recipient TIN",
+          "fieldType": "text",
+          "value": { "path": "recipient.ssn" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "ssn" },
+          "validation": { "required": true, "type": "string" }
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "label": "Interest Income",
+      "annotations": [
+        {
+          "id": "box1_interest",
+          "label": "Box 1: Interest Income",
+          "fieldType": "number",
+          "value": { "path": "interest.box1" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box2_early_penalty",
+          "label": "Box 2: Early Withdrawal Penalty",
+          "fieldType": "number",
+          "value": { "path": "interest.box2" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "box3_us_bonds",
+          "label": "Box 3: US Bonds",
+          "fieldType": "number",
+          "value": { "path": "interest.box3" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box4_federal_tax",
+          "label": "Box 4: Federal Tax Withheld",
+          "fieldType": "number",
+          "value": { "path": "interest.box4" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box5_investment_expenses",
+          "label": "Box 5: Investment Expenses",
+          "fieldType": "number",
+          "value": { "path": "interest.box5" },
+          "position": { "x": 400, "y": 170, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "box6_tax_exempt_interest",
+          "label": "Box 6: Tax-Exempt Interest",
+          "fieldType": "number",
+          "value": { "path": "interest.box6" },
+          "position": { "x": 400, "y": 200, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box8_foreign_country",
+          "label": "Box 8: Foreign Country",
+          "fieldType": "text",
+          "value": { "path": "interest.box8" },
+          "position": { "x": 50, "y": 240, "width": 200, "height": 20 },
+          "validation": { "type": "string" }
+        },
+        {
+          "id": "box9_qualifying_shares",
+          "label": "Box 9: Qualifying Shares",
+          "fieldType": "number",
+          "value": { "path": "interest.box9" },
+          "position": { "x": 400, "y": 240, "width": 120, "height": 20 },
+          "format": { "type": "number", "decimals": 0, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box10_royalties",
+          "label": "Box 10: Royalties",
+          "fieldType": "number",
+          "value": { "path": "interest.box10" },
+          "position": { "x": 400, "y": 270, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    }
+  ]
+}

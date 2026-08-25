@@ -1,0 +1,210 @@
+{
+  "id": "W-4",
+  "name": "Employee's Withholding Certificate",
+  "description": "Form W-4 for federal income tax withholding",
+  "version": "2025",
+  "pages": [
+    {
+      "number": 1,
+      "label": "Personal Information",
+      "annotations": [
+        {
+          "id": "employee_first_name",
+          "label": "First Name",
+          "fieldType": "text",
+          "value": { "path": "employee.firstName" },
+          "position": { "x": 50, "y": 50, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_last_name",
+          "label": "Last Name",
+          "fieldType": "text",
+          "value": { "path": "employee.lastName" },
+          "position": { "x": 270, "y": 50, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_ssn",
+          "label": "SSN",
+          "fieldType": "text",
+          "value": { "path": "employee.ssn" },
+          "position": { "x": 490, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "ssn" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_address",
+          "label": "Address",
+          "fieldType": "text",
+          "value": { "path": "employee.address" },
+          "position": { "x": 50, "y": 80, "width": 400, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_city",
+          "label": "City",
+          "fieldType": "text",
+          "value": { "path": "employee.city" },
+          "position": { "x": 50, "y": 110, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_state",
+          "label": "State",
+          "fieldType": "text",
+          "value": { "path": "employee.state" },
+          "position": { "x": 270, "y": 110, "width": 50, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_zip",
+          "label": "ZIP",
+          "fieldType": "text",
+          "value": { "path": "employee.zip" },
+          "position": { "x": 340, "y": 110, "width": 100, "height": 20 },
+          "format": { "type": "zip" },
+          "validation": { "required": true, "type": "string" }
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "label": "Step 2: Multiple Jobs",
+      "annotations": [
+        {
+          "id": "multiple_jobs",
+          "label": "Step 2: Check if you hold multiple jobs",
+          "fieldType": "checkbox",
+          "value": { "path": "multipleJobs" },
+          "position": { "x": 50, "y": 50, "width": 12, "height": 12 },
+          "format": { "type": "boolean" }
+        },
+        {
+          "id": "spouse_works",
+          "label": "Step 2c: Spouse Works",
+          "fieldType": "checkbox",
+          "value": { "path": "spouseWorks" },
+          "position": { "x": 50, "y": 80, "width": 12, "height": 12 },
+          "format": { "type": "boolean" }
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "label": "Step 3: Claim Dependents",
+      "annotations": [
+        {
+          "id": "qualifying_children",
+          "label": "Number of Qualifying Children Under 17",
+          "fieldType": "number",
+          "value": { "path": "dependents.qualifyingChildren" },
+          "position": { "x": 400, "y": 50, "width": 80, "height": 20 },
+          "format": { "type": "number", "decimals": 0, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "children_amount",
+          "label": "Amount for Qualifying Children",
+          "fieldType": "number",
+          "value": { "path": "dependents.childrenAmount" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "other_dependents",
+          "label": "Number of Other Dependents",
+          "fieldType": "number",
+          "value": { "path": "dependents.otherCount" },
+          "position": { "x": 400, "y": 110, "width": 80, "height": 20 },
+          "format": { "type": "number", "decimals": 0, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "other_amount",
+          "label": "Amount for Other Dependents",
+          "fieldType": "number",
+          "value": { "path": "dependents.otherAmount" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "total_dependent_credit",
+          "label": "Step 3 Total",
+          "fieldType": "number",
+          "value": { "path": "dependents.totalCredit" },
+          "position": { "x": 400, "y": 170, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "label": "Step 4: Other Adjustments",
+      "annotations": [
+        {
+          "id": "other_income",
+          "label": "Step 4a: Other Income",
+          "fieldType": "number",
+          "value": { "path": "adjustments.otherIncome" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "deductions",
+          "label": "Step 4b: Deductions",
+          "fieldType": "number",
+          "value": { "path": "adjustments.deductions" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "extra_withholding",
+          "label": "Step 4c: Extra Withholding",
+          "fieldType": "number",
+          "value": { "path": "adjustments.extraWithholding" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "label": "Sign Here",
+      "annotations": [
+        {
+          "id": "employee_phone",
+          "label": "Employee Phone",
+          "fieldType": "text",
+          "value": { "path": "employee.phone" },
+          "position": { "x": 50, "y": 50, "width": 150, "height": 20 },
+          "format": { "type": "phone" },
+          "validation": { "type": "string" }
+        },
+        {
+          "id": "employee_email",
+          "label": "Employee Email",
+          "fieldType": "text",
+          "value": { "path": "employee.email" },
+          "position": { "x": 50, "y": 80, "width": 300, "height": 20 },
+          "validation": { "type": "string" }
+        },
+        {
+          "id": "date_signed",
+          "label": "Date Signed",
+          "fieldType": "date",
+          "value": { "path": "dateSigned" },
+          "position": { "x": 50, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "date", "pattern": "01/02/2006" },
+          "validation": { "type": "date" }
+        }
+      ]
+    }
+  ]
+}

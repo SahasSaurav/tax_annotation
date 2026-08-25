@@ -1,0 +1,233 @@
+{
+  "id": "1040-Schedule-A",
+  "name": "Itemized Deductions",
+  "description": "Schedule A (Form 1040) Itemized Deductions",
+  "version": "2025",
+  "pages": [
+    {
+      "number": 1,
+      "label": "Medical and Dental Expenses",
+      "annotations": [
+        {
+          "id": "medical_expenses",
+          "label": "Line 1: Medical and Dental Expenses",
+          "fieldType": "number",
+          "value": { "path": "medical.total" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "agi",
+          "label": "Line 2: Adjusted Gross Income",
+          "fieldType": "number",
+          "value": { "path": "agi" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "required": true, "type": "number" }
+        },
+        {
+          "id": "medical_threshold",
+          "label": "Line 3: 7.5% of AGI",
+          "fieldType": "number",
+          "value": { "path": "medical.threshold" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "medical_deductible",
+          "label": "Line 4: Deductible Medical Expenses",
+          "fieldType": "number",
+          "value": { "path": "medical.deductible" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "label": "Taxes You Paid",
+      "annotations": [
+        {
+          "id": "state_local_income_tax",
+          "label": "Line 5a: State/Local Income Taxes",
+          "fieldType": "number",
+          "value": { "path": "taxes.stateLocalIncome" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "state_local_sales_tax",
+          "label": "Line 5b: State/Local Sales Taxes",
+          "fieldType": "number",
+          "value": { "path": "taxes.stateLocalSales" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "real_estate_tax",
+          "label": "Line 6: Real Estate Taxes",
+          "fieldType": "number",
+          "value": { "path": "taxes.realEstate" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "personal_property_tax",
+          "label": "Line 7: Personal Property Taxes",
+          "fieldType": "number",
+          "value": { "path": "taxes.personalProperty" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "total_taxes",
+          "label": "Line 9: Total Taxes Paid",
+          "fieldType": "number",
+          "value": { "path": "taxes.total" },
+          "position": { "x": 400, "y": 170, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "label": "Interest You Paid",
+      "annotations": [
+        {
+          "id": "home_mortgage_interest",
+          "label": "Line 10a: Home Mortgage Interest",
+          "fieldType": "number",
+          "value": { "path": "interest.homeMortgage" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "home_mortgage_points",
+          "label": "Line 10b: Points Paid",
+          "fieldType": "number",
+          "value": { "path": "interest.pointsPaid" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "mortgage_interest_paid",
+          "label": "Line 10d: Mortgage Interest (Form 1098)",
+          "fieldType": "number",
+          "value": { "path": "interest.mortgageInterestPaid" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "investment_interest",
+          "label": "Line 14: Investment Interest",
+          "fieldType": "number",
+          "value": { "path": "interest.investment" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "total_interest",
+          "label": "Line 15: Total Interest Paid",
+          "fieldType": "number",
+          "value": { "path": "interest.total" },
+          "position": { "x": 400, "y": 170, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "label": "Gifts to Charity",
+      "annotations": [
+        {
+          "id": "cash_charity",
+          "label": "Line 16: Gifts by Cash or Check",
+          "fieldType": "number",
+          "value": { "path": "charity.cash" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "noncash_charity",
+          "label": "Line 17: Gifts Other Than Cash",
+          "fieldType": "number",
+          "value": { "path": "charity.noncash" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "carryover_charity",
+          "label": "Line 18: Carryover from Prior Year",
+          "fieldType": "number",
+          "value": { "path": "charity.carryover" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "total_charity",
+          "label": "Line 19: Total Gifts to Charity",
+          "fieldType": "number",
+          "value": { "path": "charity.total" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "label": "Casualty and Theft Losses",
+      "annotations": [
+        {
+          "id": "casualty_loss",
+          "label": "Line 28: Casualty and Theft Losses",
+          "fieldType": "number",
+          "value": { "path": "casualty.loss" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "label": "Other Itemized Deductions",
+      "annotations": [
+        {
+          "id": "other_deductions",
+          "label": "Line 29: Other Itemized Deductions",
+          "fieldType": "number",
+          "value": { "path": "other.total" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "total_itemized",
+          "label": "Line 30: Total Itemized Deductions",
+          "fieldType": "number",
+          "value": { "path": "totalItemized" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        }
+      ]
+    }
+  ]
+}

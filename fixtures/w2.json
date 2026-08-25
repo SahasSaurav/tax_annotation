@@ -1,0 +1,241 @@
+{
+  "id": "W-2",
+  "name": "Wage and Tax Statement",
+  "description": "Annual wage and tax statement for employees",
+  "version": "2025",
+  "pages": [
+    {
+      "number": 1,
+      "label": "Employee Information",
+      "annotations": [
+        {
+          "id": "employee_ssn",
+          "label": "Employee SSN",
+          "fieldType": "text",
+          "value": { "path": "employee.ssn" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "ssn" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_name",
+          "label": "Employee Name",
+          "fieldType": "text",
+          "value": { "path": "employee.name" },
+          "position": { "x": 50, "y": 80, "width": 300, "height": 20 },
+          "validation": { "required": true, "type": "string", "maxLength": 60 }
+        },
+        {
+          "id": "employee_address",
+          "label": "Employee Address",
+          "fieldType": "text",
+          "value": { "path": "employee.address" },
+          "position": { "x": 50, "y": 110, "width": 400, "height": 20 },
+          "validation": { "required": true, "type": "string", "maxLength": 100 }
+        },
+        {
+          "id": "employee_city",
+          "label": "City",
+          "fieldType": "text",
+          "value": { "path": "employee.city" },
+          "position": { "x": 50, "y": 140, "width": 200, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_state",
+          "label": "State",
+          "fieldType": "text",
+          "value": { "path": "employee.state" },
+          "position": { "x": 270, "y": 140, "width": 50, "height": 20 },
+          "format": { "type": "text" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employee_zip",
+          "label": "ZIP Code",
+          "fieldType": "text",
+          "value": { "path": "employee.zip" },
+          "position": { "x": 340, "y": 140, "width": 100, "height": 20 },
+          "format": { "type": "zip" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employer_ein",
+          "label": "Employer EIN",
+          "fieldType": "text",
+          "value": { "path": "employer.ein" },
+          "position": { "x": 50, "y": 180, "width": 120, "height": 20 },
+          "format": { "type": "ein" },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "employer_name",
+          "label": "Employer Name",
+          "fieldType": "text",
+          "value": { "path": "employer.name" },
+          "position": { "x": 200, "y": 180, "width": 300, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "label": "Wages and Taxes",
+      "annotations": [
+        {
+          "id": "box1_wages",
+          "label": "Box 1: Wages, Tips, Compensation",
+          "fieldType": "number",
+          "value": { "path": "wages.box1" },
+          "position": { "x": 400, "y": 50, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "required": true, "type": "number", "min": 0 }
+        },
+        {
+          "id": "box2_federal_tax",
+          "label": "Box 2: Federal Tax Withheld",
+          "fieldType": "number",
+          "value": { "path": "wages.box2" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box3_social_security",
+          "label": "Box 3: Social Security Wages",
+          "fieldType": "number",
+          "value": { "path": "wages.box3" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box4_social_security_tax",
+          "label": "Box 4: Social Security Tax Withheld",
+          "fieldType": "number",
+          "value": { "path": "wages.box4" },
+          "position": { "x": 400, "y": 140, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box5_medicare",
+          "label": "Box 5: Medicare Wages",
+          "fieldType": "number",
+          "value": { "path": "wages.box5" },
+          "position": { "x": 400, "y": 170, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box6_medicare_tax",
+          "label": "Box 6: Medicare Tax Withheld",
+          "fieldType": "number",
+          "value": { "path": "wages.box6" },
+          "position": { "x": 400, "y": 200, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "box12_code",
+          "label": "Box 12: Code",
+          "fieldType": "text",
+          "value": { "path": "wages.box12Code" },
+          "position": { "x": 50, "y": 240, "width": 50, "height": 20 },
+          "validation": { "type": "string" }
+        },
+        {
+          "id": "box12_amount",
+          "label": "Box 12: Amount",
+          "fieldType": "number",
+          "value": { "path": "wages.box12Amount" },
+          "position": { "x": 400, "y": 240, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number" }
+        },
+        {
+          "id": "box13_statutory",
+          "label": "Box 13: Statutory Employee",
+          "fieldType": "checkbox",
+          "value": { "path": "wages.box13Statutory" },
+          "position": { "x": 50, "y": 270, "width": 12, "height": 12 },
+          "format": { "type": "boolean" }
+        },
+        {
+          "id": "box13_retirement",
+          "label": "Box 13: Retirement Plan",
+          "fieldType": "checkbox",
+          "value": { "path": "wages.box13Retirement" },
+          "position": { "x": 200, "y": 270, "width": 12, "height": 12 },
+          "format": { "type": "boolean" }
+        },
+        {
+          "id": "box13_third_party",
+          "label": "Box 13: Third-Party Sick Pay",
+          "fieldType": "checkbox",
+          "value": { "path": "wages.box13ThirdParty" },
+          "position": { "x": 350, "y": 270, "width": 12, "height": 12 },
+          "format": { "type": "boolean" }
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "label": "State and Local",
+      "annotations": [
+        {
+          "id": "state_employer_state",
+          "label": "State",
+          "fieldType": "text",
+          "value": { "path": "state.employerState" },
+          "position": { "x": 50, "y": 50, "width": 50, "height": 20 },
+          "validation": { "required": true, "type": "string" }
+        },
+        {
+          "id": "state_employer_state_id",
+          "label": "State Employer ID",
+          "fieldType": "text",
+          "value": { "path": "state.employerStateId" },
+          "position": { "x": 120, "y": 50, "width": 150, "height": 20 },
+          "validation": { "type": "string" }
+        },
+        {
+          "id": "state_wages",
+          "label": "State Wages",
+          "fieldType": "number",
+          "value": { "path": "state.wages" },
+          "position": { "x": 400, "y": 80, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "state_income_tax",
+          "label": "State Income Tax",
+          "fieldType": "number",
+          "value": { "path": "state.incomeTax" },
+          "position": { "x": 400, "y": 110, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "local_wages",
+          "label": "Local Wages",
+          "fieldType": "number",
+          "value": { "path": "local.wages" },
+          "position": { "x": 400, "y": 150, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        },
+        {
+          "id": "local_income_tax",
+          "label": "Local Income Tax",
+          "fieldType": "number",
+          "value": { "path": "local.incomeTax" },
+          "position": { "x": 400, "y": 180, "width": 120, "height": 20 },
+          "format": { "type": "currency", "decimals": 2, "alignment": "right" },
+          "validation": { "type": "number", "min": 0 }
+        }
+      ]
+    }
+  ]
+}
