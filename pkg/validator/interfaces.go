@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // Validator defines the contract for validating raw values against field rules.

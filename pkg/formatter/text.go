@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formatText returns the value as a string with optional prefix and suffix.

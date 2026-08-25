@@ -3,7 +3,7 @@ package render
 import (
 	"context"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // Renderer defines the contract for computing a RenderResult from a form definition.

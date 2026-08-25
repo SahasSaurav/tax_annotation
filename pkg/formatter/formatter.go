@@ -3,7 +3,7 @@ package formatter
 import (
 	"fmt"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formatter is the default implementation of the Formatter interface.

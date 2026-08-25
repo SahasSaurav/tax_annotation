@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // validateStringRules checks that a string value's length falls within the

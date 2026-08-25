@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formValidator is the default implementation of the Validator interface.

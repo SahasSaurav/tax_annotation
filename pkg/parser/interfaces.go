@@ -3,7 +3,7 @@ package parser
 import (
 	"context"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // Parser defines the contract for loading and validating tax form definitions.

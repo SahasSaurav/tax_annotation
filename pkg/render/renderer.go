@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
-	"github.com/sahassauarv/tax-annotation/formatter"
-	"github.com/sahassauarv/tax-annotation/parser"
-	"github.com/sahassauarv/tax-annotation/validator"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/formatter"
+	"github.com/sahassauarv/tax-annotation/pkg/parser"
+	"github.com/sahassauarv/tax-annotation/pkg/validator"
 )
 
 // formRenderer is the default implementation of the Renderer interface.

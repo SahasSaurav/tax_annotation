@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
-	"github.com/sahassauarv/tax-annotation/formatter"
-	"github.com/sahassauarv/tax-annotation/parser"
-	"github.com/sahassauarv/tax-annotation/render"
-	"github.com/sahassauarv/tax-annotation/validator"
+	"github.com/sahassauarv/tax-annotation/pkg/formatter"
+	"github.com/sahassauarv/tax-annotation/pkg/parser"
+	"github.com/sahassauarv/tax-annotation/pkg/render"
+	"github.com/sahassauarv/tax-annotation/pkg/validator"
 )
 
 func main() {

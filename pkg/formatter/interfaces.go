@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // Formatter defines the contract for converting raw Go values into

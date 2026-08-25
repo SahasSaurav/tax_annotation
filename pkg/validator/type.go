@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // validateType checks that a value matches the expected data type.

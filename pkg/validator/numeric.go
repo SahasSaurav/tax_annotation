@@ -3,8 +3,8 @@ package validator
 import (
 	"fmt"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
-	"github.com/sahassauarv/tax-annotation/formatter"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/formatter"
 )
 
 // validateNumericBounds checks that a numeric value falls within the min/max range

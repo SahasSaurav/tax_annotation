@@ -6,15 +6,19 @@ A Go library for parsing, rendering, and validating tax form annotations. It res
 
 ```
 .
-├── annotation/        # Form, Page, Annotation, Format, Validation structs
-├── parser/            # JSON parsing, path resolution, form validation
-├── formatter/         # Value formatting (currency, SSN, EIN, phone, ZIP, date, percent)
-├── validator/         # Field validation (required, type, min/max, length)
-├── render/            # Orchestrates parsing, formatting, and validation with output
-├── fixtures/          # Sample tax form JSON definitions
-├── main.go            # Entry point demonstrating usage
-├── Makefile           # Build, run, format, vet targets
-└── go.mod
+├── cmd/
+│   └── taxrender/
+│       └── main.go            # CLI entry point
+├── pkg/
+│   ├── annotation/            # Form, Page, Annotation, Format, Validation structs
+│   ├── parser/                # JSON parsing, path resolution, form validation
+│   ├── formatter/             # Value formatting (currency, SSN, EIN, phone, ZIP, date, percent)
+│   ├── validator/             # Field validation (required, type, min/max, length)
+│   └── render/                # Renderer + Writer interfaces, terminal output
+├── fixtures/                  # Sample tax form JSON definitions
+├── Makefile                   # Build, run, format, vet targets
+├── go.mod
+└── README.md
 ```
 
 ## Quick Start
@@ -61,9 +65,12 @@ fmtr := formatter.New()
 vld := validator.New()
 
 // 4. Render
-renderer, _ := render.NewRenderer(ctx, resolver, fmtr, vld)
+renderer, _ := render.NewRenderer(resolver, fmtr, vld)
 result, _ := renderer.RenderForm(ctx, form)
-result.PrintSummary()
+
+// 5. Write output
+writer := render.NewTerminalWriter()
+writer.Write(ctx, result, form)
 ```
 
 ### Dependency Injection
@@ -77,17 +84,35 @@ func (m *mockFormatter) Format(v interface{}, ft annotation.FieldType, f *annota
     return "MOCK", nil
 }
 
-renderer, _ := render.NewRenderer(ctx, resolver, &mockFormatter{}, vld)
+renderer, _ := render.NewRenderer(resolver, &mockFormatter{}, vld)
 ```
 
 ### Available Interfaces
 
-| Interface       | Package     | Methods                                           |
-|-----------------|-------------|---------------------------------------------------|
-| `Parser`        | `parser`    | `ParseFormFromFile`, `ParseForm`, `LoadDataFromFile`, `LoadData` |
-| `PathResolver`  | `parser`    | `Resolve`, `GetString`, `GetFloat`, `GetBool`     |
-| `Formatter`     | `formatter` | `Format`                                          |
-| `Validator`     | `validator` | `Validate`, `ValidateAll`                         |
+| Interface       | Package          | Methods                                           |
+|-----------------|------------------|---------------------------------------------------|
+| `Parser`        | `pkg/parser`     | `ParseFormFromFile`, `ParseForm`, `LoadDataFromFile`, `LoadData` |
+| `PathResolver`  | `pkg/parser`     | `Resolve`, `GetString`, `GetFloat`, `GetBool`     |
+| `Formatter`     | `pkg/formatter`  | `Format`                                          |
+| `Validator`     | `pkg/validator`  | `Validate`, `ValidateAll`                         |
+| `Renderer`      | `pkg/render`     | `RenderForm`, `RenderPage`, `RenderAnnotation`    |
+| `Writer`        | `pkg/render`     | `Write`                                           |
+
+### Adding a Custom Writer
+
+Implement the `Writer` interface to add new output formats:
+
+```go
+type PDFWriter struct{ ... }
+
+func (pw *PDFWriter) Write(ctx context.Context, result *render.RenderResult, form *annotation.Form) error {
+    // Generate PDF from result.Fields
+}
+
+// Use it:
+writer := &PDFWriter{...}
+writer.Write(ctx, result, form)
+```
 
 ### Format Types
 
@@ -150,16 +175,16 @@ Each fixture defines a form with pages and annotations:
 
 ## Supported Forms
 
-| Form    | Fixture File         | Pages |
-|---------|----------------------|-------|
-| W-2     | `fixtures/w2.json`   | 3     |
-| 1099-INT| `fixtures/1099-int.json` | 3  |
+| Form    | Fixture File            | Pages |
+|---------|-------------------------|-------|
+| W-2     | `fixtures/w2.json`      | 3     |
+| 1099-INT| `fixtures/1099-int.json`| 3     |
 | Schedule A | `fixtures/schedule-a.json` | 6 |
-| W-4     | `fixtures/w4.json`   | 5     |
+| W-4     | `fixtures/w4.json`      | 5     |
 
 ## Adding a New Form
 
 1. Create a JSON fixture in `fixtures/` following the format above
-2. Add sample data in `main.go`'s `generateSampleData` or inline
-3. Update the fixture path in `main.go`
+2. Add sample data in `cmd/taxrender/main.go`
+3. Update the fixture path in `cmd/taxrender/main.go`
 4. Run `make run`

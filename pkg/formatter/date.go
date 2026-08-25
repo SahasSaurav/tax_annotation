@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formatDate converts a date value to a string using the pattern specified in the

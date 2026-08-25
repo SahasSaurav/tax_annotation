@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formParser is the default implementation of the Parser interface.

@@ -3,7 +3,7 @@ package formatter
 import (
 	"fmt"
 
-	"github.com/sahassauarv/tax-annotation/annotation"
+	"github.com/sahassauarv/tax-annotation/pkg/annotation"
 )
 
 // formatCurrency converts a numeric value to a currency string with a dollar sign prefix

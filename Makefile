@@ -1,10 +1,10 @@
 .PHONY: build run clean test lint fmt vet
 
 build:
-	go build -o bin/taxannotation main.go
+	go build -o bin/taxrender ./cmd/taxrender/
 
 run:
-	go run main.go
+	go run ./cmd/taxrender/
 
 clean:
 	rm -rf bin/
