@@ -19,7 +19,7 @@ func TestValidateSSN(t *testing.T) {
 	for _, tt := range tests {
 		result := ValidateSSN(tt.input)
 		if result.Valid != tt.valid {
-			t.Errorf("ValidateSSN(%q): expected valid=%v, got valid=%v (msg: %s)", tt.input, tt.valid, result.Valid, result.Message)
+			t.Errorf("ValidateSSN(%q): got valid=%v, want %v (msg: %s)", tt.input, result.Valid, tt.valid, result.Message)
 		}
 	}
 }
@@ -42,7 +42,7 @@ func TestValidateZIP(t *testing.T) {
 	for _, tt := range tests {
 		result := ValidateZIP(tt.input)
 		if result.Valid != tt.valid {
-			t.Errorf("ValidateZIP(%q): expected valid=%v, got valid=%v (msg: %s)", tt.input, tt.valid, result.Valid, result.Message)
+			t.Errorf("ValidateZIP(%q): got valid=%v, want %v (msg: %s)", tt.input, result.Valid, tt.valid, result.Message)
 		}
 	}
 }
@@ -65,7 +65,7 @@ func TestValidateEmail(t *testing.T) {
 	for _, tt := range tests {
 		result := ValidateEmail(tt.input)
 		if result.Valid != tt.valid {
-			t.Errorf("ValidateEmail(%q): expected valid=%v, got valid=%v (msg: %s)", tt.input, tt.valid, result.Valid, result.Message)
+			t.Errorf("ValidateEmail(%q): got valid=%v, want %v (msg: %s)", tt.input, result.Valid, tt.valid, result.Message)
 		}
 	}
 }

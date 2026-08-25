@@ -17,8 +17,8 @@ func TestNewTerminalWriter(t *testing.T) {
 }
 
 func TestTerminalWriterWrite(t *testing.T) {
-	ctx := context.Background()
 	tw := NewTerminalWriter()
+	ctx := context.Background()
 
 	result := &RenderResult{
 		Fields: map[string]*RenderedField{
@@ -33,54 +33,52 @@ func TestTerminalWriterWrite(t *testing.T) {
 	}
 
 	form := &annotation.Form{
-		ID:   "W-2",
-		Name: "Wage and Tax Statement",
-		Pages: []annotation.Page{
-			{
-				Number: 1,
-				Label:  "Page 1",
-				Annotations: []annotation.Annotation{
-					{ID: "f1", Label: "Name"},
-					{ID: "f2", Label: "SSN"},
-					{ID: "f3", Label: "Empty"},
-				},
+		ID: "W-2", Name: "Wage and Tax Statement",
+		Pages: []annotation.Page{{
+			Number: 1, Label: "Page 1",
+			Annotations: []annotation.Annotation{
+				{ID: "f1", Label: "Name"},
+				{ID: "f2", Label: "SSN"},
+				{ID: "f3", Label: "Empty"},
 			},
-		},
+		}},
 	}
 
-	err := tw.Write(ctx, result, form)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	tests := []struct {
+		name    string
+		result  *RenderResult
+		form    *annotation.Form
+		ctx     context.Context
+		wantErr bool
+	}{
+		{"valid write", result, form, ctx, false},
+		{"nil result", nil, &annotation.Form{}, ctx, true},
+		{"nil form", &RenderResult{Fields: make(map[string]*RenderedField)}, nil, ctx, true},
 	}
-}
 
-func TestTerminalWriterWriteNilResult(t *testing.T) {
-	tw := NewTerminalWriter()
-	err := tw.Write(context.Background(), nil, &annotation.Form{})
-	if err == nil {
-		t.Fatal("expected error for nil result")
-	}
-}
-
-func TestTerminalWriterWriteNilForm(t *testing.T) {
-	tw := NewTerminalWriter()
-	err := tw.Write(context.Background(), &RenderResult{Fields: make(map[string]*RenderedField)}, nil)
-	if err == nil {
-		t.Fatal("expected error for nil form")
-	}
-}
-
-func TestTerminalWriterWriteCancelled(t *testing.T) {
-	tw := NewTerminalWriter()
-	ctx, cancel := context.WithCancel(context.Background())
+	cancelledCtx, cancel := context.WithCancel(ctx)
 	cancel()
+	tests = append(tests, struct {
+		name    string
+		result  *RenderResult
+		form    *annotation.Form
+		ctx     context.Context
+		wantErr bool
+	}{"cancelled context", &RenderResult{Fields: make(map[string]*RenderedField)}, &annotation.Form{Pages: []annotation.Page{{Number: 1}}}, cancelledCtx, true})
 
-	result := &RenderResult{Fields: make(map[string]*RenderedField)}
-	form := &annotation.Form{Pages: []annotation.Page{{Number: 1}}}
-
-	err := tw.Write(ctx, result, form)
-	if err == nil {
-		t.Fatal("expected error for cancelled context")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tw.Write(tt.ctx, tt.result, tt.form)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
 	}
 }
 
@@ -99,8 +97,7 @@ func TestTerminalWriterPrintDetailed(t *testing.T) {
 				Position: annotation.Position{X: 72, Y: 240, Width: 200, Height: 12},
 				IsValid: true, HasValue: false},
 		},
-		FormID:   "W-2",
-		FormName: "Test",
+		FormID: "W-2", FormName: "Test",
 	}
 
 	tw.printDetailed(result)

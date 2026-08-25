@@ -15,202 +15,166 @@ func TestNewRenderer(t *testing.T) {
 	fmtr := formatter.New()
 	vld := validator.New()
 
-	t.Run("valid", func(t *testing.T) {
-		r, err := NewRenderer(resolver, fmtr, vld)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if r == nil {
-			t.Fatal("expected non-nil renderer")
-		}
-	})
+	tests := []struct {
+		name     string
+		resolver parser.PathResolver
+		fmtr     formatter.Formatter
+		vld      validator.Validator
+		wantErr  bool
+	}{
+		{"valid", resolver, fmtr, vld, false},
+		{"nil resolver", nil, fmtr, vld, true},
+		{"nil formatter", resolver, nil, vld, true},
+		{"nil validator", resolver, fmtr, nil, true},
+	}
 
-	t.Run("nil resolver", func(t *testing.T) {
-		_, err := NewRenderer(nil, fmtr, vld)
-		if err == nil {
-			t.Fatal("expected error for nil resolver")
-		}
-	})
-
-	t.Run("nil formatter", func(t *testing.T) {
-		_, err := NewRenderer(resolver, nil, vld)
-		if err == nil {
-			t.Fatal("expected error for nil formatter")
-		}
-	})
-
-	t.Run("nil validator", func(t *testing.T) {
-		_, err := NewRenderer(resolver, fmtr, nil)
-		if err == nil {
-			t.Fatal("expected error for nil validator")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := NewRenderer(tt.resolver, tt.fmtr, tt.vld)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if r == nil {
+				t.Fatal("expected non-nil renderer")
+			}
+		})
+	}
 }
 
 func TestRenderForm(t *testing.T) {
 	ctx := context.Background()
 	data := map[string]interface{}{
-		"employee": map[string]interface{}{
-			"name": "John Doe",
-			"ssn":  "123-45-6789",
-		},
+		"employee": map[string]interface{}{"name": "John Doe", "ssn": "123-45-6789"},
 	}
-
 	resolver := parser.NewPathResolver(data)
 	fmtr := formatter.New()
 	vld := validator.New()
 	r, _ := NewRenderer(resolver, fmtr, vld)
 
 	form := &annotation.Form{
-		ID:   "W-2",
-		Name: "Wage and Tax Statement",
-		Pages: []annotation.Page{
-			{
-				Number: 1,
-				Label:  "Page 1",
-				Annotations: []annotation.Annotation{
-					{
-						ID:        "emp_name",
-						Label:     "Employee Name",
-						FieldType: annotation.FieldTypeText,
-						Value:     annotation.ValueRef{Path: "employee.name"},
-						Position:  annotation.Position{X: 72, Y: 200, Width: 200, Height: 12},
-					},
-					{
-						ID:        "emp_ssn",
-						Label:     "Employee SSN",
-						FieldType: annotation.FieldTypeText,
-						Value:     annotation.ValueRef{Path: "employee.ssn"},
-						Position:  annotation.Position{X: 72, Y: 220, Width: 200, Height: 12},
-						Format:    &annotation.Format{Type: annotation.FormatSSN},
-					},
-				},
+		ID: "W-2", Name: "Wage and Tax Statement",
+		Pages: []annotation.Page{{
+			Number: 1, Label: "Page 1",
+			Annotations: []annotation.Annotation{
+				{ID: "emp_name", Label: "Employee Name", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "employee.name"}, Position: annotation.Position{X: 72, Y: 200, Width: 200, Height: 12}},
+				{ID: "emp_ssn", Label: "Employee SSN", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "employee.ssn"}, Position: annotation.Position{X: 72, Y: 220, Width: 200, Height: 12}, Format: &annotation.Format{Type: annotation.FormatSSN}},
 			},
-		},
+		}},
 	}
 
-	t.Run("valid form", func(t *testing.T) {
-		result, err := r.RenderForm(ctx, form)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if result.FormID != "W-2" {
-			t.Errorf("expected form ID W-2, got %s", result.FormID)
-		}
-		if len(result.Fields) != 2 {
-			t.Fatalf("expected 2 fields, got %d", len(result.Fields))
-		}
-		if result.Fields["emp_name"].FormattedValue != "John Doe" {
-			t.Errorf("expected John Doe, got %s", result.Fields["emp_name"].FormattedValue)
-		}
-		if result.Fields["emp_ssn"].FormattedValue != "123-45-6789" {
-			t.Errorf("expected 123-45-6789, got %s", result.Fields["emp_ssn"].FormattedValue)
-		}
-	})
+	tests := []struct {
+		name    string
+		form    *annotation.Form
+		ctx     context.Context
+		wantErr bool
+	}{
+		{"valid form", form, ctx, false},
+		{"nil form", nil, ctx, true},
+		{"empty pages", &annotation.Form{ID: "X", Name: "Y"}, ctx, true},
+	}
 
-	t.Run("nil form", func(t *testing.T) {
-		_, err := r.RenderForm(ctx, nil)
-		if err == nil {
-			t.Fatal("expected error for nil form")
-		}
-	})
+	cancelledCtx, cancel := context.WithCancel(ctx)
+	cancel()
+	tests = append(tests, struct {
+		name    string
+		form    *annotation.Form
+		ctx     context.Context
+		wantErr bool
+	}{"cancelled context", form, cancelledCtx, true})
 
-	t.Run("empty pages", func(t *testing.T) {
-		_, err := r.RenderForm(ctx, &annotation.Form{ID: "X", Name: "Y"})
-		if err == nil {
-			t.Fatal("expected error for empty pages")
-		}
-	})
-
-	t.Run("cancelled context", func(t *testing.T) {
-		cancelledCtx, cancel := context.WithCancel(ctx)
-		cancel()
-		_, err := r.RenderForm(cancelledCtx, form)
-		if err == nil {
-			t.Fatal("expected error for cancelled context")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := r.RenderForm(tt.ctx, tt.form)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result.FormID != "W-2" {
+				t.Errorf("FormID: got %s, want W-2", result.FormID)
+			}
+			if len(result.Fields) != 2 {
+				t.Errorf("fields: got %d, want 2", len(result.Fields))
+			}
+		})
+	}
 }
 
 func TestRenderAnnotation(t *testing.T) {
 	ctx := context.Background()
-	data := map[string]interface{}{
-		"amount": 75000.00,
-	}
-
+	data := map[string]interface{}{"amount": 75000.00}
 	resolver := parser.NewPathResolver(data)
 	fmtr := formatter.New()
 	vld := validator.New()
 	r, _ := NewRenderer(resolver, fmtr, vld)
 
-	t.Run("with value", func(t *testing.T) {
-		ann := &annotation.Annotation{
-			ID:        "wages",
-			Label:     "Wages",
-			FieldType: annotation.FieldTypeNumber,
-			Value:     annotation.ValueRef{Path: "amount"},
-			Position:  annotation.Position{X: 72, Y: 200, Width: 200, Height: 12},
-			Format:    &annotation.Format{Type: annotation.FormatCurrency},
-		}
+	tests := []struct {
+		name         string
+		ann          *annotation.Annotation
+		wantValue    string
+		wantHasValue bool
+		wantIsValid  bool
+		wantErr      bool
+	}{
+		{
+			name:         "with value",
+			ann:          &annotation.Annotation{ID: "wages", Label: "Wages", FieldType: annotation.FieldTypeNumber, Value: annotation.ValueRef{Path: "amount"}, Position: annotation.Position{X: 72, Y: 200, Width: 200, Height: 12}, Format: &annotation.Format{Type: annotation.FormatCurrency}},
+			wantValue:    "$75,000.00",
+			wantHasValue: true,
+			wantIsValid:  true,
+		},
+		{
+			name:         "missing value",
+			ann:          &annotation.Annotation{ID: "missing", Label: "Missing", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "nonexistent"}, Position: annotation.Position{X: 72, Y: 200, Width: 200, Height: 12}},
+			wantHasValue: false,
+			wantIsValid:  true,
+		},
+		{
+			name:         "required missing value",
+			ann:          &annotation.Annotation{ID: "required", Label: "Required", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "nonexistent"}, Position: annotation.Position{X: 72, Y: 200, Width: 200, Height: 12}, Validation: &annotation.Validation{Required: true}},
+			wantHasValue: false,
+			wantIsValid:  false,
+		},
+		{
+			name:    "nil annotation",
+			ann:     nil,
+			wantErr: true,
+		},
+	}
 
-		field, err := r.RenderAnnotation(ctx, ann)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if !field.HasValue {
-			t.Error("expected HasValue to be true")
-		}
-		if field.FormattedValue != "$75,000.00" {
-			t.Errorf("expected $75,000.00, got %s", field.FormattedValue)
-		}
-	})
-
-	t.Run("missing value", func(t *testing.T) {
-		ann := &annotation.Annotation{
-			ID:        "missing",
-			Label:     "Missing",
-			FieldType: annotation.FieldTypeText,
-			Value:     annotation.ValueRef{Path: "nonexistent"},
-			Position:  annotation.Position{X: 72, Y: 200, Width: 200, Height: 12},
-		}
-
-		field, err := r.RenderAnnotation(ctx, ann)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if field.HasValue {
-			t.Error("expected HasValue to be false")
-		}
-		if !field.IsValid {
-			t.Error("expected IsValid to be true for non-required missing field")
-		}
-	})
-
-	t.Run("required missing value", func(t *testing.T) {
-		ann := &annotation.Annotation{
-			ID:        "required",
-			Label:     "Required",
-			FieldType: annotation.FieldTypeText,
-			Value:     annotation.ValueRef{Path: "nonexistent"},
-			Position:  annotation.Position{X: 72, Y: 200, Width: 200, Height: 12},
-			Validation: &annotation.Validation{Required: true},
-		}
-
-		field, err := r.RenderAnnotation(ctx, ann)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if field.IsValid {
-			t.Error("expected IsValid to be false for required missing field")
-		}
-	})
-
-	t.Run("nil annotation", func(t *testing.T) {
-		_, err := r.RenderAnnotation(ctx, nil)
-		if err == nil {
-			t.Fatal("expected error for nil annotation")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field, err := r.RenderAnnotation(ctx, tt.ann)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if field.HasValue != tt.wantHasValue {
+				t.Errorf("HasValue: got %v, want %v", field.HasValue, tt.wantHasValue)
+			}
+			if field.IsValid != tt.wantIsValid {
+				t.Errorf("IsValid: got %v, want %v", field.IsValid, tt.wantIsValid)
+			}
+			if tt.wantValue != "" && field.FormattedValue != tt.wantValue {
+				t.Errorf("FormattedValue: got %s, want %s", field.FormattedValue, tt.wantValue)
+			}
+		})
+	}
 }
 
 func TestRenderResult(t *testing.T) {
@@ -222,62 +186,80 @@ func TestRenderResult(t *testing.T) {
 		},
 	}
 
-	t.Run("IsComplete", func(t *testing.T) {
-		if result.IsComplete() {
-			t.Error("expected not complete due to invalid field")
-		}
-	})
+	tests := []struct {
+		name      string
+		fn        func() bool
+		want      bool
+	}{
+		{"IsComplete returns false", result.IsComplete, false},
+		{"IsComplete all valid", (&RenderResult{Fields: map[string]*RenderedField{"a": {IsValid: true, HasValue: true}}}).IsComplete, true},
+	}
 
-	t.Run("GetValidFields", func(t *testing.T) {
-		valid := result.GetValidFields()
-		if len(valid) != 2 {
-			t.Errorf("expected 2 valid fields, got %d", len(valid))
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.fn(); got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
 
-	t.Run("GetInvalidFields", func(t *testing.T) {
-		invalid := result.GetInvalidFields()
-		if len(invalid) != 1 {
-			t.Errorf("expected 1 invalid field, got %d", len(invalid))
-		}
-	})
+	countTests := []struct {
+		name string
+		fn   func() map[string]*RenderedField
+		want int
+	}{
+		{"GetValidFields", result.GetValidFields, 2},
+		{"GetInvalidFields", result.GetInvalidFields, 1},
+	}
+
+	for _, tt := range countTests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := len(tt.fn()); got != tt.want {
+				t.Errorf("got %d, want %d", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestFormatAllFields(t *testing.T) {
 	ctx := context.Background()
-	data := map[string]interface{}{
-		"name": "John",
-		"age":  30,
-	}
-
+	data := map[string]interface{}{"name": "John", "age": 30}
 	resolver := parser.NewPathResolver(data)
 	fmtr := formatter.New()
 	vld := validator.New()
 	r, _ := NewRenderer(resolver, fmtr, vld)
 
 	form := &annotation.Form{
-		ID:   "TEST",
-		Name: "Test",
-		Pages: []annotation.Page{
-			{
-				Number: 1,
-				Annotations: []annotation.Annotation{
-					{ID: "name", Label: "Name", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "name"}},
-					{ID: "age", Label: "Age", FieldType: annotation.FieldTypeNumber, Value: annotation.ValueRef{Path: "age"}},
-				},
+		ID: "TEST", Name: "Test",
+		Pages: []annotation.Page{{
+			Number: 1,
+			Annotations: []annotation.Annotation{
+				{ID: "name", Label: "Name", FieldType: annotation.FieldTypeText, Value: annotation.ValueRef{Path: "name"}},
+				{ID: "age", Label: "Age", FieldType: annotation.FieldTypeNumber, Value: annotation.ValueRef{Path: "age"}},
 			},
-		},
+		}},
+	}
+
+	tests := []struct {
+		name string
+		key  string
+		want string
+	}{
+		{"name field", "name", "John"},
+		{"age field", "age", "30"},
 	}
 
 	formatted, err := r.FormatAllFields(ctx, form)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(formatted) != 2 {
-		t.Errorf("expected 2 formatted fields, got %d", len(formatted))
-	}
-	if formatted["name"] != "John" {
-		t.Errorf("expected John, got %s", formatted["name"])
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if formatted[tt.key] != tt.want {
+				t.Errorf("got %s, want %s", formatted[tt.key], tt.want)
+			}
+		})
 	}
 }
 
@@ -299,22 +281,32 @@ func TestRenderFieldByID(t *testing.T) {
 		}},
 	}
 
-	t.Run("found", func(t *testing.T) {
-		field, err := r.RenderFieldByID(ctx, form, "name")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if field.FormattedValue != "John" {
-			t.Errorf("expected John, got %s", field.FormattedValue)
-		}
-	})
+	tests := []struct {
+		name    string
+		id      string
+		wantErr bool
+	}{
+		{"found", "name", false},
+		{"not found", "missing", true},
+	}
 
-	t.Run("not found", func(t *testing.T) {
-		_, err := r.RenderFieldByID(ctx, form, "missing")
-		if err == nil {
-			t.Fatal("expected error for missing field")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field, err := r.RenderFieldByID(ctx, form, tt.id)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if field.FormattedValue != "John" {
+				t.Errorf("got %s, want John", field.FormattedValue)
+			}
+		})
+	}
 }
 
 func TestGetFieldSummary(t *testing.T) {
@@ -341,17 +333,5 @@ func TestGetFieldSummary(t *testing.T) {
 	}
 	if summary == "" {
 		t.Error("expected non-empty summary")
-	}
-}
-
-func TestIsCompleteAllValid(t *testing.T) {
-	result := &RenderResult{
-		Fields: map[string]*RenderedField{
-			"a": {IsValid: true, HasValue: true},
-			"b": {IsValid: true, HasValue: true},
-		},
-	}
-	if !result.IsComplete() {
-		t.Error("expected complete when all valid")
 	}
 }

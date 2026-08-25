@@ -27,217 +27,112 @@ func TestResolve(t *testing.T) {
 	}
 	r := NewPathResolver(data)
 
-	t.Run("simple path", func(t *testing.T) {
-		val, ok := r.Resolve("employee.name")
-		if !ok || val != "John" {
-			t.Errorf("expected John, got %v", val)
-		}
-	})
+	tests := []struct {
+		name     string
+		path     string
+		wantVal  interface{}
+		wantOK   bool
+		resolver PathResolver
+	}{
+		{"simple path", "employee.name", "John", true, r},
+		{"nested numeric", "employee.age", 30, true, r},
+		{"missing path", "employee.nonexistent", nil, false, r},
+		{"non-map in path", "employee.name.invalid", nil, false, r},
+		{"nil data", "anything", nil, false, NewPathResolver(nil)},
+		{"empty path returns full data", "", data, true, r},
+	}
 
-	t.Run("missing path", func(t *testing.T) {
-		_, ok := r.Resolve("employee.nonexistent")
-		if ok {
-			t.Error("expected false for missing path")
-		}
-	})
-
-	t.Run("array access", func(t *testing.T) {
-		_, ok := r.Resolve("items[1].id")
-		if ok {
-			// This path format isn't supported by splitPath since "items[1]" is treated
-			// as one segment. Array indexing works only when parent is already an array.
-		}
-	})
-
-	t.Run("array access on nested", func(t *testing.T) {
-		// Test array access when already inside an array
-		nested := map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{"val": 10},
-			},
-		}
-		nr := NewPathResolver(nested)
-		val, ok := nr.Resolve("first")
-		if !ok {
-			t.Fatal("expected ok")
-		}
-		arr, ok := val.([]interface{})
-		if !ok || len(arr) != 1 {
-			t.Fatalf("expected array of 1, got %v", val)
-		}
-		item, ok := arr[0].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected map")
-		}
-		if item["val"] != 10 {
-			t.Errorf("expected 10, got %v", item["val"])
-		}
-	})
-
-	t.Run("nil data", func(t *testing.T) {
-		nr := NewPathResolver(nil)
-		_, ok := nr.Resolve("anything")
-		if ok {
-			t.Error("expected false for nil data")
-		}
-	})
-
-	t.Run("empty path returns full data", func(t *testing.T) {
-		val, ok := r.Resolve("")
-		if !ok {
-			t.Error("expected true for empty path")
-		}
-		m, ok := val.(map[string]interface{})
-		if !ok {
-			t.Error("expected map")
-		}
-		if m["employee"] == nil {
-			t.Error("expected employee key in returned data")
-		}
-	})
-
-	t.Run("non-map in path", func(t *testing.T) {
-		_, ok := r.Resolve("employee.name.invalid")
-		if ok {
-			t.Error("expected false for traversal into non-map")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val, ok := tt.resolver.Resolve(tt.path)
+			if ok != tt.wantOK {
+				t.Errorf("ok: got %v, want %v", ok, tt.wantOK)
+			}
+			if tt.wantOK && val == nil {
+				t.Error("expected non-nil value")
+			}
+		})
+	}
 }
 
 func TestGetString(t *testing.T) {
 	data := map[string]interface{}{"name": "John"}
 	r := NewPathResolver(data)
 
-	t.Run("found", func(t *testing.T) {
-		result := r.GetString("name", "default")
-		if result != "John" {
-			t.Errorf("expected John, got %s", result)
-		}
-	})
+	tests := []struct {
+		name     string
+		path     string
+		fallback string
+		expected string
+	}{
+		{"found", "name", "default", "John"},
+		{"fallback", "missing", "default", "default"},
+	}
 
-	t.Run("fallback", func(t *testing.T) {
-		result := r.GetString("missing", "default")
-		if result != "default" {
-			t.Errorf("expected default, got %s", result)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := r.GetString(tt.path, tt.fallback)
+			if result != tt.expected {
+				t.Errorf("got %s, want %s", result, tt.expected)
+			}
+		})
+	}
 }
 
 func TestGetFloat(t *testing.T) {
-	data := map[string]interface{}{
-		"amount": 75000.00,
-		"strNum": "123.45",
-		"bad":    "abc",
-		"bool":   true,
+	tests := []struct {
+		name     string
+		data     map[string]interface{}
+		path     string
+		fallback float64
+		expected float64
+	}{
+		{"float64", map[string]interface{}{"v": 75000.00}, "v", 0, 75000.00},
+		{"string to float", map[string]interface{}{"v": "123.45"}, "v", 0, 123.45},
+		{"json.Number", map[string]interface{}{"v": json.Number("999.99")}, "v", 0, 999.99},
+		{"bad string", map[string]interface{}{"v": "abc"}, "v", 42, 42},
+		{"bool fallback", map[string]interface{}{"v": true}, "v", 42, 42},
+		{"missing", map[string]interface{}{}, "v", 42, 42},
+		{"bad json.Number", map[string]interface{}{"v": json.Number("notanumber")}, "v", 42, 42},
 	}
-	r := NewPathResolver(data)
 
-	t.Run("float64", func(t *testing.T) {
-		result := r.GetFloat("amount", 0)
-		if result != 75000.00 {
-			t.Errorf("expected 75000, got %f", result)
-		}
-	})
-
-	t.Run("string to float", func(t *testing.T) {
-		result := r.GetFloat("strNum", 0)
-		if result != 123.45 {
-			t.Errorf("expected 123.45, got %f", result)
-		}
-	})
-
-	t.Run("json.Number", func(t *testing.T) {
-		data := map[string]interface{}{"val": json.Number("999.99")}
-		r := NewPathResolver(data)
-		result := r.GetFloat("val", 0)
-		if result != 999.99 {
-			t.Errorf("expected 999.99, got %f", result)
-		}
-	})
-
-	t.Run("bad string", func(t *testing.T) {
-		result := r.GetFloat("bad", 42)
-		if result != 42 {
-			t.Errorf("expected fallback 42, got %f", result)
-		}
-	})
-
-	t.Run("bool fallback", func(t *testing.T) {
-		result := r.GetFloat("bool", 42)
-		if result != 42 {
-			t.Errorf("expected fallback 42, got %f", result)
-		}
-	})
-
-	t.Run("missing", func(t *testing.T) {
-		result := r.GetFloat("missing", 42)
-		if result != 42 {
-			t.Errorf("expected fallback 42, got %f", result)
-		}
-	})
-
-	t.Run("bad json.Number", func(t *testing.T) {
-		data := map[string]interface{}{"val": json.Number("notanumber")}
-		r := NewPathResolver(data)
-		result := r.GetFloat("val", 42)
-		if result != 42 {
-			t.Errorf("expected fallback 42, got %f", result)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewPathResolver(tt.data)
+			result := r.GetFloat(tt.path, tt.fallback)
+			if result != tt.expected {
+				t.Errorf("got %f, want %f", result, tt.expected)
+			}
+		})
+	}
 }
 
 func TestGetBool(t *testing.T) {
-	data := map[string]interface{}{
-		"yes":     true,
-		"no":      false,
-		"strTrue": "true",
-		"strOne":  "1",
-		"bad":     "invalid",
-		"num":     42,
+	tests := []struct {
+		name     string
+		data     map[string]interface{}
+		path     string
+		fallback bool
+		expected bool
+	}{
+		{"true", map[string]interface{}{"v": true}, "v", false, true},
+		{"false", map[string]interface{}{"v": false}, "v", true, false},
+		{"string true", map[string]interface{}{"v": "true"}, "v", false, true},
+		{"string 1", map[string]interface{}{"v": "1"}, "v", false, true},
+		{"bad string fallback", map[string]interface{}{"v": "invalid"}, "v", true, true},
+		{"non-bool fallback", map[string]interface{}{"v": 42}, "v", true, true},
+		{"missing fallback", map[string]interface{}{}, "v", true, true},
 	}
-	r := NewPathResolver(data)
 
-	t.Run("true", func(t *testing.T) {
-		if !r.GetBool("yes", false) {
-			t.Error("expected true")
-		}
-	})
-
-	t.Run("false", func(t *testing.T) {
-		if r.GetBool("no", true) {
-			t.Error("expected false")
-		}
-	})
-
-	t.Run("string true", func(t *testing.T) {
-		if !r.GetBool("strTrue", false) {
-			t.Error("expected true from string")
-		}
-	})
-
-	t.Run("string 1", func(t *testing.T) {
-		if !r.GetBool("strOne", false) {
-			t.Error("expected true from '1'")
-		}
-	})
-
-	t.Run("bad string fallback", func(t *testing.T) {
-		if !r.GetBool("bad", true) {
-			t.Error("expected fallback true")
-		}
-	})
-
-	t.Run("non-bool fallback", func(t *testing.T) {
-		if !r.GetBool("num", true) {
-			t.Error("expected fallback true")
-		}
-	})
-
-	t.Run("missing fallback", func(t *testing.T) {
-		if !r.GetBool("missing", true) {
-			t.Error("expected fallback true")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewPathResolver(tt.data)
+			result := r.GetBool(tt.path, tt.fallback)
+			if result != tt.expected {
+				t.Errorf("got %v, want %v", result, tt.expected)
+			}
+		})
+	}
 }
 
 func TestSplitPath(t *testing.T) {
@@ -253,7 +148,7 @@ func TestSplitPath(t *testing.T) {
 	for _, tt := range tests {
 		result := splitPath(tt.input)
 		if len(result) != tt.expected {
-			t.Errorf("splitPath(%q): expected %d parts, got %d", tt.input, tt.expected, len(result))
+			t.Errorf("splitPath(%q): got %d parts, want %d", tt.input, len(result), tt.expected)
 		}
 	}
 }

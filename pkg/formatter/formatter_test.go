@@ -46,7 +46,7 @@ func TestFormatCurrency(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %s, got %s", tt.expected, result)
+				t.Errorf("got %s, want %s", result, tt.expected)
 			}
 		})
 	}
@@ -73,7 +73,7 @@ func TestFormatNumber(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %s, got %s", tt.expected, result)
+				t.Errorf("got %s, want %s", result, tt.expected)
 			}
 		})
 	}
@@ -100,7 +100,7 @@ func TestFormatPercent(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %s, got %s", tt.expected, result)
+				t.Errorf("got %s, want %s", result, tt.expected)
 			}
 		})
 	}
@@ -115,7 +115,7 @@ func TestFormatSSN(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if result != "123-45-6789" {
-		t.Errorf("expected 123-45-6789, got %s", result)
+		t.Errorf("got %s, want 123-45-6789", result)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestFormatEIN(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if result != "12-3456789" {
-		t.Errorf("expected 12-3456789, got %s", result)
+		t.Errorf("got %s, want 12-3456789", result)
 	}
 }
 
@@ -141,7 +141,7 @@ func TestFormatPhone(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if result != "(555) 123-4567" {
-		t.Errorf("expected (555) 123-4567, got %s", result)
+		t.Errorf("got %s, want (555) 123-4567", result)
 	}
 }
 
@@ -165,7 +165,7 @@ func TestFormatZIP(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %s, got %s", tt.expected, result)
+				t.Errorf("got %s, want %s", result, tt.expected)
 			}
 		})
 	}
@@ -191,7 +191,7 @@ func TestFormatBoolean(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %s, got %s", tt.expected, result)
+				t.Errorf("got %s, want %s", result, tt.expected)
 			}
 		})
 	}
@@ -200,70 +200,75 @@ func TestFormatBoolean(t *testing.T) {
 func TestFormatText(t *testing.T) {
 	f := New()
 
-	t.Run("with prefix and suffix", func(t *testing.T) {
-		format := &annotation.Format{
-			Type:   annotation.FormatText,
-			Prefix: "Box ",
-			Suffix: ":",
-		}
-		result, err := f.Format("12", annotation.FieldTypeText, format)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if result != "Box 12:" {
-			t.Errorf("expected 'Box 12:', got %s", result)
-		}
-	})
+	tests := []struct {
+		name     string
+		format   *annotation.Format
+		value    interface{}
+		expected string
+	}{
+		{
+			name:     "with prefix and suffix",
+			format:   &annotation.Format{Type: annotation.FormatText, Prefix: "Box ", Suffix: ":"},
+			value:    "12",
+			expected: "Box 12:",
+		},
+		{
+			name:     "without prefix suffix",
+			format:   &annotation.Format{Type: annotation.FormatText},
+			value:    "hello",
+			expected: "hello",
+		},
+	}
 
-	t.Run("without prefix suffix", func(t *testing.T) {
-		format := &annotation.Format{Type: annotation.FormatText}
-		result, err := f.Format("hello", annotation.FieldTypeText, format)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if result != "hello" {
-			t.Errorf("expected hello, got %s", result)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := f.Format(tt.value, annotation.FieldTypeText, tt.format)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result != tt.expected {
+				t.Errorf("got %s, want %s", result, tt.expected)
+			}
+		})
+	}
 }
 
 func TestFormatDefault(t *testing.T) {
 	f := New()
 
-	t.Run("checkbox default", func(t *testing.T) {
-		result, err := f.Format(true, annotation.FieldTypeCheckbox, nil)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if result != "Yes" {
-			t.Errorf("expected Yes, got %s", result)
-		}
-	})
+	tests := []struct {
+		name      string
+		value     interface{}
+		fieldType annotation.FieldType
+		expected  string
+	}{
+		{"checkbox default", true, annotation.FieldTypeCheckbox, "Yes"},
+		{"text default", "hello", annotation.FieldTypeText, "hello"},
+	}
 
-	t.Run("text default", func(t *testing.T) {
-		result, err := f.Format("hello", annotation.FieldTypeText, nil)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if result != "hello" {
-			t.Errorf("expected hello, got %s", result)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := f.Format(tt.value, tt.fieldType, nil)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result != tt.expected {
+				t.Errorf("got %s, want %s", result, tt.expected)
+			}
+		})
+	}
 }
 
 func TestFormatDate(t *testing.T) {
 	f := New()
-	format := &annotation.Format{
-		Type:    annotation.FormatDate,
-		Pattern: "01/02/2006",
-	}
+	format := &annotation.Format{Type: annotation.FormatDate, Pattern: "01/02/2006"}
 
 	result, err := f.Format("2025-01-15", annotation.FieldTypeDate, format)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if result != "01/15/2025" {
-		t.Errorf("expected 01/15/2025, got %s", result)
+		t.Errorf("got %s, want 01/15/2025", result)
 	}
 }
 
@@ -284,7 +289,7 @@ func TestAlignText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := AlignText(tt.text, tt.width, tt.alignment)
 			if result != tt.expected {
-				t.Errorf("expected %q, got %q", tt.expected, result)
+				t.Errorf("got %q, want %q", result, tt.expected)
 			}
 		})
 	}

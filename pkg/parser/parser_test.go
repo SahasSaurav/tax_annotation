@@ -35,174 +35,172 @@ func TestParseForm(t *testing.T) {
 		}]
 	}`
 
-	t.Run("valid form", func(t *testing.T) {
-		form, err := p.ParseForm(ctx, []byte(validJSON))
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if form.ID != "W-2" {
-			t.Errorf("expected ID W-2, got %s", form.ID)
-		}
-		if form.Name != "Wage and Tax Statement" {
-			t.Errorf("expected name Wage and Tax Statement, got %s", form.Name)
-		}
-		if len(form.Pages) != 1 {
-			t.Fatalf("expected 1 page, got %d", len(form.Pages))
-		}
-		if len(form.Pages[0].Annotations) != 1 {
-			t.Fatalf("expected 1 annotation, got %d", len(form.Pages[0].Annotations))
-		}
-	})
+	tests := []struct {
+		name    string
+		data    string
+		ctx     context.Context
+		wantErr bool
+		wantID  string
+	}{
+		{"valid form", validJSON, ctx, false, "W-2"},
+		{"invalid JSON", "invalid", ctx, true, ""},
+		{"missing ID", `{"name": "Test", "pages": [{"number": 1, "label": "P1"}]}`, ctx, true, ""},
+		{"empty pages", `{"id": "X", "name": "Y", "pages": []}`, ctx, true, ""},
+	}
 
-	t.Run("invalid JSON", func(t *testing.T) {
-		_, err := p.ParseForm(ctx, []byte("invalid"))
-		if err == nil {
-			t.Fatal("expected error for invalid JSON")
-		}
-	})
+	cancelledCtx, cancel := context.WithCancel(ctx)
+	cancel()
+	tests = append(tests, struct {
+		name    string
+		data    string
+		ctx     context.Context
+		wantErr bool
+		wantID  string
+	}{"cancelled context", validJSON, cancelledCtx, true, ""})
 
-	t.Run("missing ID", func(t *testing.T) {
-		invalidJSON := `{"name": "Test", "pages": [{"number": 1, "label": "P1"}]}`
-		_, err := p.ParseForm(ctx, []byte(invalidJSON))
-		if err == nil {
-			t.Fatal("expected error for missing ID")
-		}
-	})
-
-	t.Run("empty pages", func(t *testing.T) {
-		invalidJSON := `{"id": "X", "name": "Y", "pages": []}`
-		_, err := p.ParseForm(ctx, []byte(invalidJSON))
-		if err == nil {
-			t.Fatal("expected error for empty pages")
-		}
-	})
-
-	t.Run("cancelled context", func(t *testing.T) {
-		cancelledCtx, cancel := context.WithCancel(ctx)
-		cancel()
-		_, err := p.ParseForm(cancelledCtx, []byte(validJSON))
-		if err == nil {
-			t.Fatal("expected error for cancelled context")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			form, err := p.ParseForm(tt.ctx, []byte(tt.data))
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if form.ID != tt.wantID {
+				t.Errorf("ID: got %s, want %s", form.ID, tt.wantID)
+			}
+			if len(form.Pages) != 1 {
+				t.Errorf("pages: got %d, want 1", len(form.Pages))
+			}
+		})
+	}
 }
 
 func TestLoadData(t *testing.T) {
 	ctx := context.Background()
 	p := New()
 
-	t.Run("valid data", func(t *testing.T) {
-		json := `{"name": "John", "age": 30}`
-		data, err := p.LoadData(ctx, []byte(json))
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if data["name"] != "John" {
-			t.Errorf("expected name John, got %v", data["name"])
-		}
-	})
+	tests := []struct {
+		name    string
+		data    string
+		ctx     context.Context
+		wantErr bool
+	}{
+		{"valid data", `{"name": "John", "age": 30}`, ctx, false},
+		{"invalid JSON", "invalid", ctx, true},
+	}
 
-	t.Run("invalid JSON", func(t *testing.T) {
-		_, err := p.LoadData(ctx, []byte("invalid"))
-		if err == nil {
-			t.Fatal("expected error for invalid JSON")
-		}
-	})
+	cancelledCtx, cancel := context.WithCancel(ctx)
+	cancel()
+	tests = append(tests, struct {
+		name    string
+		data    string
+		ctx     context.Context
+		wantErr bool
+	}{"cancelled context", `{}`, cancelledCtx, true})
 
-	t.Run("cancelled context", func(t *testing.T) {
-		cancelledCtx, cancel := context.WithCancel(ctx)
-		cancel()
-		_, err := p.LoadData(cancelledCtx, []byte(`{}`))
-		if err == nil {
-			t.Fatal("expected error for cancelled context")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := p.LoadData(tt.ctx, []byte(tt.data))
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if data["name"] != "John" {
+				t.Errorf("name: got %v, want John", data["name"])
+			}
+		})
+	}
 }
 
 func TestValidateForm(t *testing.T) {
-	validForm := &annotation.Form{
-		ID:   "W-2",
-		Name: "Wage and Tax Statement",
-		Pages: []annotation.Page{
-			{Number: 1, Label: "Page 1"},
+	tests := []struct {
+		name    string
+		form    *annotation.Form
+		wantErr bool
+	}{
+		{
+			name:    "valid form",
+			form:    &annotation.Form{ID: "W-2", Name: "Wage and Tax Statement", Pages: []annotation.Page{{Number: 1, Label: "Page 1"}}},
+			wantErr: false,
+		},
+		{
+			name:    "missing ID",
+			form:    &annotation.Form{Name: "Test", Pages: []annotation.Page{{Number: 1}}},
+			wantErr: true,
+		},
+		{
+			name:    "missing name",
+			form:    &annotation.Form{ID: "X", Pages: []annotation.Page{{Number: 1}}},
+			wantErr: true,
+		},
+		{
+			name:    "no pages",
+			form:    &annotation.Form{ID: "X", Name: "Y"},
+			wantErr: true,
+		},
+		{
+			name: "duplicate annotation IDs",
+			form: &annotation.Form{
+				ID: "X", Name: "Y",
+				Pages: []annotation.Page{{
+					Number:      1,
+					Annotations: []annotation.Annotation{{ID: "dup"}, {ID: "dup"}},
+				}},
+			},
+			wantErr: true,
 		},
 	}
 
-	t.Run("valid form", func(t *testing.T) {
-		if err := ValidateForm(validForm); err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-	})
-
-	t.Run("missing ID", func(t *testing.T) {
-		f := &annotation.Form{Name: "Test", Pages: []annotation.Page{{Number: 1}}}
-		if err := ValidateForm(f); err == nil {
-			t.Fatal("expected error for missing ID")
-		}
-	})
-
-	t.Run("missing name", func(t *testing.T) {
-		f := &annotation.Form{ID: "X", Pages: []annotation.Page{{Number: 1}}}
-		if err := ValidateForm(f); err == nil {
-			t.Fatal("expected error for missing name")
-		}
-	})
-
-	t.Run("no pages", func(t *testing.T) {
-		f := &annotation.Form{ID: "X", Name: "Y"}
-		if err := ValidateForm(f); err == nil {
-			t.Fatal("expected error for no pages")
-		}
-	})
-
-	t.Run("duplicate annotation IDs", func(t *testing.T) {
-		f := &annotation.Form{
-			ID:   "X",
-			Name: "Y",
-			Pages: []annotation.Page{
-				{
-					Number: 1,
-					Annotations: []annotation.Annotation{
-						{ID: "dup"},
-						{ID: "dup"},
-					},
-				},
-			},
-		}
-		if err := ValidateForm(f); err == nil {
-			t.Fatal("expected error for duplicate IDs")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateForm(tt.form)
+			if tt.wantErr && err == nil {
+				t.Fatal("expected error")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
 }
 
 func TestGetAnnotation(t *testing.T) {
 	form := &annotation.Form{
-		Pages: []annotation.Page{
-			{
-				Annotations: []annotation.Annotation{
-					{ID: "field1"},
-					{ID: "field2"},
-				},
-			},
-		},
+		Pages: []annotation.Page{{
+			Annotations: []annotation.Annotation{{ID: "field1"}, {ID: "field2"}},
+		}},
 	}
 
-	t.Run("found", func(t *testing.T) {
-		ann := GetAnnotation(form, "field1")
-		if ann == nil {
-			t.Fatal("expected to find annotation")
-		}
-		if ann.ID != "field1" {
-			t.Errorf("expected ID field1, got %s", ann.ID)
-		}
-	})
+	tests := []struct {
+		name string
+		id   string
+		want bool
+	}{
+		{"found", "field1", true},
+		{"not found", "nonexistent", false},
+	}
 
-	t.Run("not found", func(t *testing.T) {
-		ann := GetAnnotation(form, "nonexistent")
-		if ann != nil {
-			t.Fatal("expected nil for nonexistent annotation")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ann := GetAnnotation(form, tt.id)
+			if tt.want && ann == nil {
+				t.Fatal("expected to find annotation")
+			}
+			if !tt.want && ann != nil {
+				t.Fatal("expected nil")
+			}
+		})
+	}
 }
 
 func TestAllAnnotations(t *testing.T) {
@@ -222,36 +220,49 @@ func TestAllAnnotations(t *testing.T) {
 func TestOverlayData(t *testing.T) {
 	base := map[string]interface{}{
 		"a": "1",
-		"b": map[string]interface{}{
-			"c": "2",
-			"d": "3",
-		},
+		"b": map[string]interface{}{"c": "2", "d": "3"},
 	}
-
 	overlay := map[string]interface{}{
-		"b": map[string]interface{}{
-			"c": "overridden",
-		},
+		"b": map[string]interface{}{"c": "overridden"},
 		"e": "new",
 	}
 
 	result := OverlayData(base, overlay)
 
-	if result["a"] != "1" {
-		t.Errorf("expected a=1, got %v", result["a"])
+	tests := []struct {
+		key      string
+		expected interface{}
+	}{
+		{"a", "1"},
+		{"e", "new"},
 	}
-	if result["e"] != "new" {
-		t.Errorf("expected e=new, got %v", result["e"])
+
+	for _, tt := range tests {
+		t.Run(tt.key, func(t *testing.T) {
+			if result[tt.key] != tt.expected {
+				t.Errorf("got %v, want %v", result[tt.key], tt.expected)
+			}
+		})
 	}
 
 	bMap, ok := result["b"].(map[string]interface{})
 	if !ok {
 		t.Fatal("expected b to be a map")
 	}
-	if bMap["c"] != "overridden" {
-		t.Errorf("expected b.c=overridden, got %v", bMap["c"])
+
+	bTests := []struct {
+		key      string
+		expected interface{}
+	}{
+		{"c", "overridden"},
+		{"d", "3"},
 	}
-	if bMap["d"] != "3" {
-		t.Errorf("expected b.d=3, got %v", bMap["d"])
+
+	for _, tt := range bTests {
+		t.Run("b."+tt.key, func(t *testing.T) {
+			if bMap[tt.key] != tt.expected {
+				t.Errorf("got %v, want %v", bMap[tt.key], tt.expected)
+			}
+		})
 	}
 }
